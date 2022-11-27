@@ -10,13 +10,13 @@ use Yii;
 
 class SecurityController extends Controller
 {
-    public function init()
+    public function init(): void
     {
         parent::init();
         Yii::$app->user->loginUrl = ['site/index'];
     }
 
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [

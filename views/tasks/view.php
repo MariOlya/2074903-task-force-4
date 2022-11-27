@@ -240,12 +240,10 @@ $this->registerJsFile(Yii::$app->request->baseUrl.'/js/main.js');
             </p>
             <p>
                 <?= $form->field($model, 'score', ['options' => [
-                    'class'=> 'completion-head control-label',
-                    'style' => 'display: none']])
-                    ->textInput(['id' => 'acceptance-form-rate',
-                    ]); ?>
+                    'class'=> 'completion-head control-label']])
+                    ->hiddenInput(['id' => 'acceptance-form-rate',
+                    ]) ?>
             </p>
-            <p class="completion-head control-label">Оценка работы</p>
             <div class="stars-rating big active-stars">
                 <span>&nbsp;</span><span>&nbsp;</span><span>&nbsp;</span><span>&nbsp;</span><span>&nbsp;</span>
             </div>

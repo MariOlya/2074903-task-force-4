@@ -45,10 +45,10 @@ if ($userData && array_key_exists('city', $userData)) {
                     'class' => 'form-group',
                     ]])
                     ->textInput(['placeholder' => 'Иван Иванов',
-                        'value' => $userData && array_key_exists('first_name', $userData) && array_key_exists('last_name', $userData) ?
-                            $userData['first_name'] . ' ' . $userData['last_name'] :
+                        'value' => $userData ?
+                            implode(' ', array_filter($userData['first_name'] ?? '', $userData['last_name'] ?? '')) :
                             null
-                    ]); ?>
+                    ]) ?>
 
                 <div class="half-wrapper">
                     <?= $form->field($model, 'email', ['options' => [

@@ -9,7 +9,7 @@ interface FileSaveInterface
 {
     /**
      * @param UploadedFile $file
-     * @return Files|null
+     * @return Files
      */
-    public function saveNewFile(UploadedFile $file) : ?Files;
+    public function saveNewFile(UploadedFile $file) : Files;
 }

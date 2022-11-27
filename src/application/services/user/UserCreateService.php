@@ -17,14 +17,14 @@ class UserCreateService implements UserCreateInterface
 {
     /**
      * @param NewUserDto $dto
-     * @return Users|null
+     * @return Users
      * @throws Exception
      * @throws ServerErrorHttpException
      */
-    public function createNewUser(NewUserDto $dto) : ?Users
+    public function createNewUser(NewUserDto $dto) : Users
     {
         $createdUser = new Users();
-        $createdUser->attributes = $dto->attributes;
+        $createdUser->attributes = $dto->form->getAttributes();
         if ($dto->userData) {
             $createdUser->vkId = $dto->userData['id'];
         }

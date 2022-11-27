@@ -11,10 +11,8 @@ use yii\authclient\Collection;
 use yii\base\InvalidConfigException;
 use yii\web\Controller;
 use Yii;
-use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
-use yii\web\ServerErrorHttpException;
 
 class AuthController extends Controller
 {
@@ -33,63 +31,58 @@ class AuthController extends Controller
 
     /**
      * @return Response|string
+     * @throws InvalidConfigException|NotFoundHttpException
      */
     public function actionAuthorizeUserViaVk() : Response|string
     {
-        try {
-            if (!Yii::$app->user->isGuest) {
-                return $this->goHome();
-            }
-
-            /** @var Collection $collectionClientsOAuth */
-            $collectionClientsOAuth = Yii::$app->get('authClientCollection');
-            /** @var VKontakte $vkClientOAuth */
-            $vkClientOAuth = $collectionClientsOAuth->getClient('vkontakte');
-
-            $codeVk = Yii::$app->request->get('code');
-            $userData = $this->userAuthVk->applyAccessTokenForVk($codeVk, $vkClientOAuth)->getUserAttributes();
-
-            if ($userData) {
-                $currentUser = Users::findOne(['vkId' => $userData['id']]);
-                if (!$currentUser) {
-                    if (array_key_exists('email', $userData)) {
-                        $currentUser = Users::findOne(['email' => mb_strtolower($userData['email'])]);
-                        $currentUser?->addVkId($userData['id']);
-                    }
-                    if (!$currentUser) {
-                        return $this->redirect([
-                            'registration/index',
-                            'userData' => $userData
-                        ]);
-                    }
-                }
-                if ($currentUser) {
-                    Yii::$app->user->login($currentUser);
-                    return $this->redirect(['site/index']);
-                }
-            }
-            throw new NotFoundHttpException();
-        } catch (HttpException|InvalidConfigException|ServerErrorHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
         }
+
+        /** @var Collection $collectionClientsOAuth */
+        $collectionClientsOAuth = Yii::$app->get('authClientCollection');
+        /** @var VKontakte $vkClientOAuth */
+        $vkClientOAuth = $collectionClientsOAuth->getClient('vkontakte');
+
+        $codeVk = Yii::$app->request->get('code');
+        $userData = $this->userAuthVk->applyAccessTokenForVk($codeVk, $vkClientOAuth)->getUserAttributes();
+
+        if (!$userData) {
+            throw new NotFoundHttpException();
+        }
+
+        $currentUser = Users::findOne(['vkId' => $userData['id']]);
+
+        if (!$currentUser) {
+            if (array_key_exists('email', $userData)) {
+                $currentUser = Users::findOne(['email' => mb_strtolower($userData['email'])]);
+                $currentUser?->addVkId($userData['id']);
+            }
+            if (!$currentUser) {
+                return $this->redirect([
+                    'registration/index',
+                    'userData' => $userData
+                ]);
+            }
+        }
+
+        Yii::$app->user->login($currentUser);
+        return $this->redirect(['site/index']);
     }
 
     /**
      * @param int $userId
      * @return Response|string
+     * @throws NotFoundHttpException
      */
     public function actionLogin(int $userId) : Response|string
     {
-        try {
-            $newUser = Users::findOne($userId);
-            Yii::$app->user->login($newUser);
-            return $this->redirect(['site/index']);
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
+        $newUser = Users::findOne($userId);
+        if (!$newUser) {
+            throw new NotFoundHttpException('User is not found', 404);
         }
+
+        Yii::$app->user->login($newUser);
+        return $this->redirect(['site/index']);
     }
 }

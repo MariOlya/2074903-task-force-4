@@ -49,32 +49,27 @@ class TaskActionsController extends SecurityController
     /**
      * @param int $respondId
      * @return Response|string
+     * @throws ServerErrorHttpException|NotFoundHttpException
      */
     public function actionAcceptRespond(int $respondId) : Response|string
     {
-        try {
-            if ($respondId) {
-                $respond = Responds::findOne($respondId);
-                $userId = \Yii::$app->user->id;
-                $task = $respond->task;
-
-                if ($this->respondStatusAdd->addAcceptStatus($respond, $userId)->status) {
-                    $task->addExecutorId($respond->executorId)->addInWorkStatus();
-                    $this->respondStatusAdd->addRestRespondsRefuseStatus(
-                        $task->responds,
-                        $respond
-                    );
-                }
-
-                return $this->redirect(['tasks/view', 'id' => $task->id]);
-            }
+        $respond = Responds::findOne($respondId);
+        if (!$respond) {
             throw new NotFoundHttpException('Respond is not found', 404);
-        } catch (ServerErrorHttpException|NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
+
+        $userId = \Yii::$app->user->id;
+        $task = $respond->task;
+
+        if ($this->respondStatusAdd->addAcceptStatus($respond, $userId)->status) {
+            $task->addExecutorId($respond->executorId)->addInWorkStatus();
+            $this->respondStatusAdd->addRestRespondsRefuseStatus(
+                $task->responds,
+                $respond
+            );
+        }
+
+        return $this->redirect(['tasks/view', 'id' => $task->id]);
     }
 
     /**
@@ -83,146 +78,124 @@ class TaskActionsController extends SecurityController
      */
     public function actionRefuseRespond(int $respondId) : Response|string
     {
-        try {
-            if ($respondId) {
-                $respond = Responds::findOne($respondId);
-                $task = $respond->task;
-                $userId = \Yii::$app->user->id;
-
-                $this->respondStatusAdd->addRefuseStatus($respond, $userId);
-
-                return $this->redirect(['tasks/view', 'id' => $task->id]);
-            }
+        $respond = Responds::findOne($respondId);
+        if (!$respond) {
             throw new NotFoundHttpException('Respond is not found', 404);
-        } catch (NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
+
+        $task = $respond->task;
+        $userId = \Yii::$app->user->id;
+
+        $this->respondStatusAdd->addRefuseStatus($respond, $userId);
+
+        return $this->redirect(['tasks/view', 'id' => $task->id]);
     }
 
     /**
      * @param int $taskId
      * @return Response|string
+     * @throws NotFoundHttpException
+     * @throws AvailableActionsException
+     * @throws CurrentActionException
+     * @throws IdUserException
      */
     public function actionCancelTask(int $taskId) : Response|string
     {
-        try {
-            if ($taskId) {
-                $task = Tasks::findOne($taskId);
-                $userId = Yii::$app->user->id;
+        $task = Tasks::findOne($taskId);
 
-                if ($task->addCancelledStatus($userId)) {
-                    $this->respondStatusAdd->addRestRespondsRefuseStatus($task->responds);
-                }
-
-                return $this->redirect(['tasks/view', 'id' => $task->id]);
-            }
+        if (!$task) {
             throw new NotFoundHttpException('Task is not found', 404);
-        } catch (NotFoundHttpException|
-            AvailableActionsException|
-            CurrentActionException|
-            IdUserException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
+
+        $userId = Yii::$app->user->id;
+
+        if ($task->addCancelledStatus($userId)) {
+            $this->respondStatusAdd->addRestRespondsRefuseStatus($task->responds);
+        }
+
+        return $this->redirect(['tasks/view', 'id' => $task->id]);
     }
 
     /**
      * @param int $taskId
      * @return Response|string
+     * @throws NotFoundHttpException
      */
     public function actionRespondTask(int $taskId) : Response|string
     {
-        try {
-            if ($taskId) {
-                $task = Tasks::findOne($taskId);
-                $user = Yii::$app->user->identity;
-                $taskResponseForm = new TaskResponseForm();
+        $task = Tasks::findOne($taskId);
 
-                if (Yii::$app->request->getIsPost()) {
-                    $taskResponseForm->load(Yii::$app->request->post());
-                    if ($taskResponseForm->validate() && $taskResponseForm->isAvailableAddRespond($user, $task)) {
-                        $attributes = Yii::$app->request->post('TaskResponseForm');
-
-                        $this->respondCreate->createNewRespond(new NewRespondDto($user->id, $task->id, $attributes));
-
-                        return $this->redirect(['tasks/view', 'id' => $taskId]);
-                    }
-                }
-                throw new NotFoundHttpException('Page not found', 404);
-            }
+        if (!$task) {
             throw new NotFoundHttpException('Task is not found', 404);
-        } catch (NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
-    }
+        $user = Yii::$app->user->identity;
+        $taskResponseForm = new TaskResponseForm();
 
-    /**
-     * @param int $taskId
-     * @return Response|string
-     */
-    public function actionDenyTask(int $taskId) : Response|string
-    {
-        try {
-            if ($taskId) {
-                $task = Tasks::findOne($taskId);
-                $userId = Yii::$app->user->id;
-                $task->addFailedStatus($userId);
+        if (Yii::$app->request->getIsPost()) {
+            $taskResponseForm->load(Yii::$app->request->post());
+            if ($taskResponseForm->validate() && $taskResponseForm->isAvailableAddRespond($user, $task)) {
+                $attributes = $taskResponseForm->getAttributes();
+                $this->respondCreate->createNewRespond(new NewRespondDto($user->id, $task->id, $attributes));
 
                 return $this->redirect(['tasks/view', 'id' => $taskId]);
             }
-            throw new NotFoundHttpException('Task is not found', 404);
-        } catch (NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
+        throw new NotFoundHttpException('Page not found', 404);
     }
 
     /**
      * @param int $taskId
      * @return Response|string
+     * @throws AvailableActionsException
+     * @throws CurrentActionException
+     * @throws IdUserException
+     * @throws NotFoundHttpException
+     */
+    public function actionDenyTask(int $taskId) : Response|string
+    {
+        $task = Tasks::findOne($taskId);
+
+        if (!$task) {
+            throw new NotFoundHttpException('Task is not found', 404);
+        }
+
+        $userId = Yii::$app->user->id;
+        $task->addFailedStatus($userId);
+
+        return $this->redirect(['tasks/view', 'id' => $taskId]);
+    }
+
+    /**
+     * @param int $taskId
+     * @return Response|string
+     * @throws AvailableActionsException
+     * @throws CurrentActionException
+     * @throws IdUserException
+     * @throws NotFoundHttpException
      */
     public function actionAcceptTask(int $taskId) : Response|string
     {
-        try {
-            if (!$taskId) {
-                throw new NotFoundHttpException('Task is not found', 404);
-            }
-            $task = Tasks::findOne($taskId);
-            $userId = Yii::$app->user->id;
-            $taskAcceptanceForm = new TaskAcceptanceForm();
+        $task = Tasks::findOne($taskId);
 
-            if (!$task->addDoneStatus($userId)) {
-                throw new NotFoundHttpException('Page not found', 404);
-            }
-            if (Yii::$app->request->getIsPost()) {
-                $taskAcceptanceForm->load(Yii::$app->request->post());
-                if ($taskAcceptanceForm->validate()) {
-                    $attributes = Yii::$app->request->post('TaskAcceptanceForm');
+        if (!$task) {
+            throw new NotFoundHttpException('Task is not found', 404);
+        }
 
-                    $this->reviewCreate->createNewReview($task, $attributes);
+        $userId = Yii::$app->user->id;
+        $taskAcceptanceForm = new TaskAcceptanceForm();
 
-                    return $this->redirect(['tasks/view', 'id' => $taskId]);
-                }
+        if (!$task->addDoneStatus($userId)) {
+            throw new NotFoundHttpException('Page not found', 404);
+        }
+
+        if (Yii::$app->request->getIsPost()) {
+            $taskAcceptanceForm->load(Yii::$app->request->post());
+            if ($taskAcceptanceForm->validate()) {
+                $attributes = $taskAcceptanceForm->getAttributes();
+                $this->reviewCreate->createNewReview($task, $attributes);
+
+                return $this->redirect(['tasks/view', 'id' => $taskId]);
             }
-        } catch (NotFoundHttpException|
-            AvailableActionsException|
-            CurrentActionException|
-            IdUserException|
-            ServerErrorHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
     }
 }

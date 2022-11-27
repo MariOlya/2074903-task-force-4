@@ -9,9 +9,6 @@ class NewUserDto
     /** @var RegistrationForm */
     public RegistrationForm $form;
 
-    /** @var array */
-    public array $attributes;
-
     /** @var array|null */
     public ?array $userData = null;
 
@@ -20,14 +17,12 @@ class NewUserDto
 
     /**
      * @param RegistrationForm $form
-     * @param array $attributes
      * @param array|null $userData
      * @param string|null $avatarVk
      */
-    public function __construct(RegistrationForm $form, array $attributes, ?array $userData, ?string $avatarVk)
+    public function __construct(RegistrationForm $form, ?array $userData = null, ?string $avatarVk = null)
     {
         $this->form = $form;
-        $this->attributes = $attributes;
         $this->userData = $userData;
         $this->avatarVk = $avatarVk;
     }

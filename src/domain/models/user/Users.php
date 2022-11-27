@@ -19,6 +19,7 @@ use Yii;
 use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
 use yii\web\IdentityInterface;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "users".
@@ -297,14 +298,10 @@ class Users extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public function getExecutorRating(): float
     {
-        $commonScore = array_sum(
-            array_map(
-                function (Reviews $executorReviews) {
-                    return $executorReviews->score;
-                },
-                $this->executorReviews
-            )
-        );
+        $commonScore = 0;
+        foreach ($this->executorReviews as $executorReview) {
+            $commonScore += $executorReview->score;
+        }
         return $this->getCountReviews() ?
             round($commonScore / ($this->getCountReviews() + $this->getCountFailedTasks()), 2) :
             0;

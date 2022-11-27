@@ -41,11 +41,8 @@ class TaskResponseForm extends Model
      */
     public function isAvailableAddRespond(Users $user, Tasks $task) : bool
     {
-        if ($user->role === UserRoleConstants::ID_EXECUTOR_ROLE &&
-            !$user->getResponds()->where(['taskId' => $task->id])->one() &&
-            $task->status = TaskStatusConstants::ID_NEW_STATUS) {
-            return true;
-        }
-        return false;
+        return $user->role === UserRoleConstants::ID_EXECUTOR_ROLE &&
+            $task->status = (TaskStatusConstants::ID_NEW_STATUS &&
+                !$user->getResponds()->where(['taskId' => $task->id])->one());
     }
 }

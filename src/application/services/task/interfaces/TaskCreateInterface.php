@@ -9,7 +9,7 @@ interface TaskCreateInterface
 {
     /**
      * @param NewTaskDto $dto
-     * @return Tasks|null
+     * @return Tasks
      */
-    public function createNewTask(NewTaskDto $dto) : ?Tasks;
+    public function createNewTask(NewTaskDto $dto) : Tasks;
 }

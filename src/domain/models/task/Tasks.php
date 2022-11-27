@@ -331,10 +331,10 @@ class Tasks extends \yii\db\ActiveRecord
 
     /**
      * @param int $executorId
-     * @return null|Tasks
+     * @return Tasks
      * @throws ServerErrorHttpException
      */
-    public function addExecutorId(int $executorId) : ?Tasks
+    public function addExecutorId(int $executorId) : Tasks
     {
         $this->executorId = $executorId;
         return $this->save(false) ?

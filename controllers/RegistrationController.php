@@ -13,7 +13,6 @@ use Yii;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\AccessControl;
-use yii\web\ServerErrorHttpException;
 
 class RegistrationController extends Controller
 {
@@ -38,7 +37,7 @@ class RegistrationController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -61,40 +60,31 @@ class RegistrationController extends Controller
      */
     public function actionIndex(?array $userData = null): string|Response
     {
-        try {
-            $registrationForm = new RegistrationForm();
-            $cities = Cities::find()->all();
+        $registrationForm = new RegistrationForm();
+        $cities = Cities::find()->all();
 
-            if (Yii::$app->request->getIsPost()) {
-                $registrationForm->load(Yii::$app->request->post());
+        if (Yii::$app->request->getIsPost()) {
+            $registrationForm->load(Yii::$app->request->post());
 
-                if ($registrationForm->validate()) {
-                    $avatarVk = !$userData ? null : (array_key_exists('photo', $userData) ?
-                        $this->fileParse->parseAvatarVkFile($userData['photo']) :
-                        null);
-                    $newUser = $this->userCreate->createNewUser(new NewUserDto(
+            if ($registrationForm->validate()) {
+                $avatarVk = $this->fileParse->parseAvatarVkFile($userData['photo'] ?? null);
+                $newUser = $this->userCreate->createNewUser(
+                    new NewUserDto(
                         $registrationForm,
-                        Yii::$app->request->post('RegistrationForm'),
                         $userData,
                         $avatarVk
-                    ));
-                    if ($userData) {
-                        return $this->redirect(['auth/login', 'userId' => $newUser->id]);
-                    }
-                    return $this->redirect(['site/index']);
-                }
+                    )
+                );
+                return $userData
+                    ? $this->redirect(['auth/login', 'userId' => $newUser->id])
+                    : $this->redirect(['site/index']);
             }
-
-            return $this->render('index', [
-                'model' => $registrationForm,
-                'cities' => $cities,
-                'userData' => $userData
-            ]);
-        } catch (ServerErrorHttpException|\yii\base\Exception $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
         }
+
+        return $this->render('index', [
+            'model' => $registrationForm,
+            'cities' => $cities,
+            'userData' => $userData
+        ]);
     }
 }

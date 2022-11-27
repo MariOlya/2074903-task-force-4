@@ -14,26 +14,16 @@ class FileController extends SecurityController
     /**
      * @param int $fileId
      * @return Response|string
+     * @throws NotFoundHttpException
      */
-    public function actionDownload(int $fileId) : Response|string
+    public function actionDownload(int $fileId): Response|string
     {
-        try {
-            if ($fileId) {
-                $file = Files::findOne($fileId);
-                if (!$file) {
-                    throw new NotFoundHttpException('File is not found', 404);
-                }
-
-                $filePath = Yii::getAlias('@webroot') . $file->fileSrc;
-                return Yii::$app->response->sendFile($filePath);
-            } else {
-                throw new NotFoundHttpException('File is not found', 404);
-            }
-        } catch (NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
+        $file = Files::findOne($fileId);
+        if (!$file) {
+            throw new NotFoundHttpException('File is not found', 404);
         }
+
+        $filePath = Yii::getAlias('@webroot') . $file->fileSrc;
+        return Yii::$app->response->sendFile($filePath);
     }
 }

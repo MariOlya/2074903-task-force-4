@@ -19,8 +19,8 @@ class RespondCreateService implements RespondCreateInterface
     public function createNewRespond(NewRespondDto $dto): ?Responds
     {
         $newRespond = new Responds();
-        if ($dto->formAttributes) {
-            $newRespond->attributes = $dto->formAttributes;
+        if ($dto->attributes) {
+            $newRespond->attributes = $dto->attributes;
         }
         $newRespond->taskId = $dto->taskId;
         $newRespond->executorId = $dto->userId;

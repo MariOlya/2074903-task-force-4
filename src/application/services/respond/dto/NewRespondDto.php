@@ -4,17 +4,10 @@ namespace omarinina\application\services\respond\dto;
 
 class NewRespondDto
 {
-    public int $userId;
-    public int $taskId;
-    public ?array $formAttributes;
-
     public function __construct(
-        int $userId,
-        int $taskId,
-        ?array $attributes
+        public readonly int $userId,
+        public int $taskId,
+        public ?array $attributes = null,
     ) {
-        $this->userId = $userId;
-        $this->taskId = $taskId;
-        $this->formAttributes = $attributes;
     }
 }

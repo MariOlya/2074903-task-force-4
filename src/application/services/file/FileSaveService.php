@@ -15,13 +15,13 @@ class FileSaveService implements FileSaveInterface
 {
     /**
      * @param UploadedFile $file
-     * @return Files|null
+     * @return Files
      * @throws ServerErrorHttpException
      */
-    public function saveNewFile(UploadedFile $file) : ?Files
+    public function saveNewFile(UploadedFile $file) : Files
     {
         $savedFile = new Files();
-        $name = uniqid('upload') . '.' . $file->getExtension();
+        $name = uniqid('upload', true) . '.' . $file->getExtension();
 
         $uploadPath = Yii::getAlias('@webroot') . HelperConstants::PART_PATH_FILE;
 

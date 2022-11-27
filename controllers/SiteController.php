@@ -14,7 +14,7 @@ use yii\web\NotFoundHttpException;
 
 class SiteController extends Controller
 {
-    public function init()
+    public function init(): void
     {
         parent::init();
         Yii::$app->user->loginUrl = ['site/index'];
@@ -23,7 +23,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -49,7 +49,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -79,32 +79,25 @@ class SiteController extends Controller
 
     /**
      * @return array|string|Response
+     * @throws NotFoundHttpException
      */
     public function actionAjaxLogin() : array|string|Response
     {
-        try {
-            if (!Yii::$app->user->isGuest) {
-                return $this->goHome();
-            }
-
-            if (Yii::$app->request->isAjax) {
-                $loginForm = new LoginForm();
-                if ($loginForm->load(Yii::$app->request->post())) {
-                    if ($loginForm->login()) {
-                        return $this->goHome();
-                    }
-                    Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-                    return \yii\widgets\ActiveForm::validate($loginForm);
-                }
-            } else {
-                throw new NotFoundHttpException('Page not found', 404);
-            }
-        } catch (NotFoundHttpException $e) {
-            return $e->getMessage();
-        } catch (\Throwable $e) {
-            Yii::$app->errorHandler->logException($e);
-            return 'Something wrong. Sorry, please, try again later';
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
         }
+
+        if (Yii::$app->request->isAjax) {
+            $loginForm = new LoginForm();
+            if ($loginForm->load(Yii::$app->request->post())) {
+                if ($loginForm->login()) {
+                    return $this->goHome();
+                }
+                Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+                return \yii\widgets\ActiveForm::validate($loginForm);
+            }
+        }
+        throw new NotFoundHttpException('Page not found', 404);
     }
 
     /**
@@ -112,7 +105,7 @@ class SiteController extends Controller
      *
      * @return Response
      */
-    public function actionLogout()
+    public function actionLogout(): Response
     {
         Yii::$app->user->logout();
 

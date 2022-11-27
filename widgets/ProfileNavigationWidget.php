@@ -13,6 +13,6 @@ class ProfileNavigationWidget extends Widget
         if (!\Yii::$app->user->isGuest) {
             return $this->render('profileNavigationWidget');
         }
-        return;
+        return null;
     }
 }

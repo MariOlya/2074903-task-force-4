@@ -34,8 +34,20 @@ class ExecutorCategories extends \yii\db\ActiveRecord
         return [
             [['categoryId', 'executorId'], 'required'],
             [['categoryId', 'executorId'], 'integer'],
-            [['executorId'], 'exist', 'skipOnError' => true, 'targetClass' => Users::class, 'targetAttribute' => ['executorId' => 'id']],
-            [['categoryId'], 'exist', 'skipOnError' => true, 'targetClass' => Categories::class, 'targetAttribute' => ['categoryId' => 'id']],
+            [
+                ['executorId'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => Users::class,
+                'targetAttribute' => ['executorId' => 'id']
+            ],
+            [
+                ['categoryId'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => Categories::class,
+                'targetAttribute' => ['categoryId' => 'id']
+            ],
         ];
     }
 

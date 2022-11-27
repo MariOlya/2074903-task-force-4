@@ -18,12 +18,12 @@ class TaskCreateService implements TaskCreateInterface
 {
     /**
      * @param NewTaskDto $dto
-     * @return Tasks|null
+     * @return Tasks
      * @throws InvalidConfigException
      * @throws NotFoundHttpException
      * @throws ServerErrorHttpException
      */
-    public function createNewTask(NewTaskDto $dto) : ?Tasks
+    public function createNewTask(NewTaskDto $dto) : Tasks
     {
         $createdTask = new Tasks();
         $createdTask->attributes = $dto->attributes;

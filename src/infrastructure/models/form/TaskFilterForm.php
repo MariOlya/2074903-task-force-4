@@ -71,7 +71,7 @@ class TaskFilterForm extends Model
     public function filter(ActiveQuery $tasks): ActiveQuery
     {
         if ($this->noResponds) {
-            $tasks->joinWith(['responds'], true, 'LEFT JOIN')->where(['taskId' => null]);
+            $tasks->joinWith(['responds'])->where(['taskId' => null]);
         }
         if ($this->categories) {
             $tasks->andWhere(['in', 'categoryId', $this->categories]);
@@ -79,7 +79,7 @@ class TaskFilterForm extends Model
         if ($this->remote) {
             $tasks->andWhere(['city' => null]);
         }
-        if (in_array($this->period, array_keys($this->getPeriods()))) {
+        if (array_key_exists($this->period, $this->getPeriods())) {
             switch ($this->period) {
                 case self::PERIOD_1_HOUR:
                     $tasks->andWhere('tasks.createAt >= NOW() - INTERVAL 1 HOUR');

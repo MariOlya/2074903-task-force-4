@@ -18,9 +18,9 @@ class LoginWidget extends Widget
             return $this->render('loginWidget', [
                 'model' => $model,
             ]);
-        } else {
-            return ;
         }
+
+        return null;
     }
 
 }

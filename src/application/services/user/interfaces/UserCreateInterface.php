@@ -7,9 +7,5 @@ use omarinina\domain\models\user\Users;
 
 interface UserCreateInterface
 {
-    /**
-     * @param NewUserDto $dto
-     * @return Users|null
-     */
-    public function createNewUser(NewUserDto $dto) : ?Users;
+    public function createNewUser(NewUserDto $dto) : Users;
 }
